@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @Time: 2020/6/4 21:53
+# @Time: 2020/6/8 20:57
 # @Author: wangshengkang
 # -----------------------------------代码布局--------------------------------------------
 # 1引入pytorch，numpy，matplotlib，IPython等包
@@ -9,17 +9,20 @@
 # 5结果以及损失函数可视化
 # -----------------------------------代码布局--------------------------------------------
 # ------------------------------------1引入包-----------------------------------------------
+
 import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader, Dataset, TensorDataset
-
+from torch.utils.data import DataLoader,Dataset,TensorDataset
 # ------------------------------------1引入包-----------------------------------------------
 # ------------------------------------2数据处理------------------------------------------
+plt.switch_backend('agg')  # 服务器没有gui
 
-f = np.load('mnist.npz')  # 导入数据
+path = 'mnist.npz'
+f = np.load(path)
 print(f.files)
+
 X_train = f['x_train']
 X_test = f['x_test']
 f.close()
@@ -27,99 +30,105 @@ f.close()
 print(X_train.shape)  # (60000, 28, 28)
 print(X_test.shape)  # (10000, 28, 28)
 
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+
 X_train = X_train.astype('float32') / 255.  # 归一化
 X_test = X_test.astype('float32') / 255.
 
-print('X_train shape:', X_train.shape)
-print(X_train.shape[0], 'train samples')
-print(X_test.shape[0], 'test samples')
-print(X_train.shape[1:])  # (28, 28)
+noise_factor=0.5
+X_train_noisy=X_train+noise_factor*np.random.normal(loc=0.0,scale=1.0,size=X_train.shape)
+X_test_noisy=X_test+noise_factor*np.random.normal(loc=0.0,scale=1.0,size=X_test.shape)
 
-X_train = X_train.reshape((len(X_train), np.prod(X_train.shape[1:])))  # (60000,784)
-X_test = X_test.reshape((len(X_test), np.prod(X_test.shape[1:])))  # (10000,784)
-X_train = torch.from_numpy(X_train)  # 转为tensor
-X_test = torch.from_numpy(X_test)
-set = TensorDataset(X_train, X_train)  # 将数据集包装为TensorDataset
-loader = DataLoader(dataset=set, batch_size=128, shuffle=False)  # 使用dataloader类
+X_train_noisy=np.clip(X_train_noisy,0.,1.)
+X_test_noisy=np.clip(X_test_noisy,0.,1.)
+
+X_train = torch.from_numpy((X_train))
+X_test = torch.from_numpy((X_test))
+X_train_noisy=torch.from_numpy(X_train_noisy)
+X_test_noisy=torch.from_numpy(X_test_noisy)
+
+
 
 
 # ------------------------------------2数据处理------------------------------------------
 # ------------------------------------3建立模型------------------------------------------
 
 
-class normalize(nn.Module):
+class denoiseAE(nn.Module):
     def __init__(self):
-        super(normalize, self).__init__()
-        self.fc1 = nn.Linear(784, 32)  # 32
-        self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(32, 784)  # 784
-        self.sigmoid = nn.Sigmoid()
+        super(denoiseAE, self).__init__()
+        self.denoise=nn.Sequential(
+            nn.Conv2d(1,32,(3,3),padding=1),#28*28*32
+            nn.ReLU(),
+            nn.MaxPool2d((2,2)),#14*14*32
+            nn.Conv2d(32,32,(3,3),padding=1),#14*14*32
+            nn.ReLU(),
+            nn.MaxPool2d((2,2)),#7*7*32
+
+            nn.Conv2d(32,32,(3,3),padding=1),#7*7*32
+            nn.ReLU(),
+            nn.Upsample((14,14)),#14*14*32
+            nn.Conv2d(32,32,(3,3),padding=1),#14*14*32
+            nn.ReLU(),
+            nn.Upsample((28,28)),#28*28*32
+            nn.Conv2d(32,1,(3,3),padding=1),#28*28*1
+        )
 
     def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu1(out)
-        out = self.fc2(out)
-        out = self.sigmoid(out)
-
+        out=denoiseAE(x)
         return out
 
 
-model = normalize()
+model = denoiseAE()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-loss = nn.MSELoss()
+loss = nn.CrossEntropyLoss()
 
 # ------------------------------------3建立模型------------------------------------------
 # ------------------------------------4训练模型，预测结果------------------------------------------
-loss_total = []  # 放置损失函数的列表
+loss_total = []
 epoch_total = []
 
-epochs = 5
+epochs = 3
 for epoch in range(epochs):
-    noregular_loss = 0.0
-    train_loss = 0.0  # 初始化损失函数的值
-    for i, data in enumerate(loader):  # 挨个batch训练
-        regularization_loss = 0
-        for param in model.parameters():  # l1正则化 L1范数是参数矩阵W中元素的绝对值之和
-            regularization_loss += torch.sum(torch.abs(param))
-        pre = model(data[0])  # data[0]为训练图像
-        batch_loss = loss(pre, data[1])  # data[1]为真实图像
-        loss_regularize = batch_loss + 0.000001 * regularization_loss
-        optimizer.zero_grad()  # 梯度清零
-        loss_regularize.backward()  # 损失函数反向传播
-        optimizer.step()  # 优化器更新
-        noregular_loss += batch_loss
-        train_loss += loss_regularize  # 一个epoch内的所有loss加起来
-    print('epoch %3d, noregular_loss %10f, train_loss %10f' % (
-        epoch+1, noregular_loss / len(loader), train_loss / len(loader)))
-    loss_total.append(train_loss / len(loader))  # 每个epoch的loss加进来
+    pre = model(X_train_noisy)
+    train_loss = loss(pre, X_train)
+    loss_total.append(train_loss)
     epoch_total.append(epoch)
-
+    optimizer.zero_grad()
+    train_loss.backward()
+    optimizer.step()
+    print('epoch %3d, loss %10f' % (epoch, train_loss))
 # ------------------------------------4训练模型，预测结果------------------------------------------
 # ------------------------------------5可视化------------------------------------------
+
 # RuntimeError: Can't call numpy() on Variable that requires grad. Use var.detach().numpy() instead.
-pre = model(X_test).detach().numpy()
+pre_test = model(X_test_noisy).detach().numpy()
+
 n = 10
 plt.figure(figsize=(20, 6))
 for i in range(10):
     ax = plt.subplot(3, n, i + 1)
-    plt.imshow(X_test[i].reshape(28, 28))  # 打印真实图片
-    plt.gray()
-    ax.get_xaxis().set_visible(False)  # 隐藏坐标轴
-    ax.get_yaxis().set_visible(False)
-
-    ax = plt.subplot(3, n, i + n + 1)
-    plt.imshow(pre[i].reshape(28, 28))  # 打印模型解码的图片
+    plt.imshow(X_test[i].reshape(28, 28))
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
+
+    ax = plt.subplot(3, n, i + n + 1)
+    plt.imshow(pre_test[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+plt.savefig(fname='tu1.png')  # 保存图片
 plt.show()
 
-# 画出loss曲线
 plt.plot(epoch_total, loss_total, label='loss')
 plt.title('torch loss')  # 题目
 plt.xlabel('Epoch')  # 横坐标
 plt.ylabel('Loss')  # 纵坐标
 plt.legend(['train'], loc='upper left')  # 图线示例
+plt.savefig(fname='tu2.png')
 plt.show()  # 画图
 
 # ------------------------------------5可视化------------------------------------------
+

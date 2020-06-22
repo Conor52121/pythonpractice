@@ -12,7 +12,7 @@ def main():
  
     # 预测模型搭建
     pred_y = predict(train_data, test_data, is_shuffle=False)
- 
+
     # 输出预测结果
     pred_y.to_csv('./pred3.csv',index=1, header=['price'])
  

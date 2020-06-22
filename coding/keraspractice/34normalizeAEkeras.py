@@ -45,6 +45,7 @@ r=Dense(input_size,activation='sigmoid')(h)#784
 
 autoencoder=Model(inputs=x,outputs=r)# 完整的模型
 autoencoder.compile(optimizer='adam',loss='mse')
+autoencoder.summary()
 # ------------------------------------3建立模型------------------------------------------
 # ------------------------------------4训练模型，预测结果------------------------------------------
 

@@ -59,6 +59,7 @@ r = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(up3)  # 1*28*28
 
 autoencoder = Model(inputs=x, outputs=r)  # 完整的模型
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
+autoencoder.summary()
 # ------------------------------------3建立模型------------------------------------------
 # ------------------------------------4训练模型，预测结果------------------------------------------
 

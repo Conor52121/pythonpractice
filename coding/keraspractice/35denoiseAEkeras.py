@@ -21,31 +21,32 @@ from keras import regularizers
 from keras.regularizers import l2
 from keras.layers.convolutional import Conv2D, MaxPooling2D, UpSampling2D, ZeroPadding2D
 from keras.utils import np_utils
+
 # ------------------------------------1引入包-----------------------------------------------
 # ------------------------------------2数据处理-----------------------------------------
 
-path='mnist.npz'
-f=np.load(path)
+path = 'mnist.npz'
+f = np.load(path)
 
-X_train=f['x_train']
-X_test=f['x_test']
+X_train = f['x_train']
+X_test = f['x_test']
 f.close()
 
-print(X_train.shape)#(60000, 28, 28)
-print(X_test.shape)#(10000, 28, 28)
+print(X_train.shape)  # (60000, 28, 28)
+print(X_test.shape)  # (10000, 28, 28)
 
-X_train=X_train.reshape(X_train.shape[0],28,28,1)
-X_test=X_test.reshape(X_test.shape[0],28,28,1)
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
 
-X_train=X_train.astype('float32')/255.#归一化
-X_test=X_test.astype('float32')/255.
+X_train = X_train.astype('float32') / 255.  # 归一化
+X_test = X_test.astype('float32') / 255.
 
-noise_factor=0.5
-X_train_noisy=X_train+noise_factor*np.random.normal(loc=0.0,scale=1.0,size=X_train.shape)
-X_test_noisy=X_test+noise_factor*np.random.normal(loc=0.0,scale=1.0,size=X_test.shape)
+noise_factor = 0.5
+X_train_noisy = X_train + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=X_train.shape)
+X_test_noisy = X_test + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=X_test.shape)
 
-X_train_noisy=np.clip(X_train_noisy,0.,1.)
-X_test_noisy=np.clip(X_test_noisy,0.,1.)
+X_train_noisy = np.clip(X_train_noisy, 0., 1.)
+X_test_noisy = np.clip(X_test_noisy, 0., 1.)
 
 # ------------------------------------2数据处理------------------------------------------
 # ------------------------------------3建立模型------------------------------------------
@@ -67,31 +68,31 @@ autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 # ------------------------------------3建立模型------------------------------------------
 # ------------------------------------4训练模型，预测结果------------------------------------------
 
-epochs=3
-batch_size=128
+epochs = 3
+batch_size = 128
 
-history=autoencoder.fit(X_train,X_train,
-                        batch_size=batch_size,
-                        epochs=epochs,
-                        verbose=1,
-                        validation_data=(X_test_noisy,X_test)
-                        )
+history = autoencoder.fit(X_train, X_train,
+                          batch_size=batch_size,
+                          epochs=epochs,
+                          verbose=1,
+                          validation_data=(X_test_noisy, X_test)
+                          )
 
 # ------------------------------------4训练模型，预测结果------------------------------------------
 # ------------------------------------5结果可视化------------------------------------------
-decoded_imgs=autoencoder.predict(X_test_noisy)# 打印输出层效果，查看解码效果
+decoded_imgs = autoencoder.predict(X_test_noisy)  # 打印输出层效果，查看解码效果
 
-n=10
-plt.figure(figsize=(20,6))
+n = 10
+plt.figure(figsize=(20, 6))
 for i in range(n):
-    ax=plt.subplot(3,n,i+1)
-    plt.imshow(X_test[i].reshape(28,28))# 打印测试集真实图片
+    ax = plt.subplot(3, n, i + 1)
+    plt.imshow(X_test[i].reshape(28, 28))  # 打印测试集真实图片
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
 
-    ax=plt.subplot(3,n,i+n+1)
-    plt.imshow(decoded_imgs[i].reshape(28,28))# 打印解码后的图片
+    ax = plt.subplot(3, n, i + n + 1)
+    plt.imshow(decoded_imgs[i].reshape(28, 28))  # 打印解码后的图片
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
@@ -108,4 +109,3 @@ plt.xlabel('epoch')
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
 # ------------------------------------5结果可视化------------------------------------------
-

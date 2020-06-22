@@ -107,7 +107,7 @@ loss = nn.BCELoss()
 loss_total = []
 epoch_total = []
 
-epochs = 30
+epochs = 3
 for epoch in range(epochs):
     pre = model(X_train)
     train_loss = loss(pre, X_train)

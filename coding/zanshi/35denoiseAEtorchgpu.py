@@ -15,9 +15,11 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset, TensorDataset
-
+import os
 # ------------------------------------1引入包-----------------------------------------------
 # ------------------------------------2数据处理------------------------------------------
+os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # 选择gpu
+plt.switch_backend('agg')  # 服务器没有gui
 path = 'mnist.npz'
 f = np.load(path)
 print(f.files)
@@ -46,10 +48,10 @@ X_test_noisy = X_test + noise_factor * np.random.normal(loc=0.0, scale=1.0, size
 X_train_noisy = np.clip(X_train_noisy, 0., 1.)
 X_test_noisy = np.clip(X_test_noisy, 0., 1.)
 
-X_train = torch.from_numpy(X_train).permute(0, 3, 1, 2).float()  # 转为tensor，改变位置，转换类型
-X_test = torch.from_numpy(X_test).permute(0, 3, 1, 2).float()
-X_train_noisy = torch.from_numpy(X_train_noisy).permute(0, 3, 1, 2).float()
-X_test_noisy = torch.from_numpy(X_test_noisy).permute(0, 3, 1, 2).float()
+X_train = torch.from_numpy(X_train).permute(0, 3, 1, 2).float().cuda()  # 转为tensor，改变位置，转换类型
+X_test = torch.from_numpy(X_test).permute(0, 3, 1, 2).float().cuda()
+X_train_noisy = torch.from_numpy(X_train_noisy).permute(0, 3, 1, 2).float().cuda()
+X_test_noisy = torch.from_numpy(X_test_noisy).permute(0, 3, 1, 2).float().cuda()
 
 X_train_dataset = TensorDataset(X_train_noisy, X_train)
 X_test_dataset = TensorDataset(X_test_noisy, X_test)
@@ -87,7 +89,7 @@ class denoiseAE(nn.Module):
         return out
 
 
-model = denoiseAE()
+model = denoiseAE().cuda()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 loss = nn.BCELoss()
 
@@ -114,7 +116,8 @@ for epoch in range(epochs):
 # ------------------------------------5可视化------------------------------------------
 
 # RuntimeError: Can't call numpy() on Variable that requires grad. Use var.detach().numpy() instead.
-pre_test = model(X_test_noisy).detach().numpy()
+pre_test = model(X_test_noisy).cpu().detach.numpy()
+
 
 n = 10
 plt.figure(figsize=(20, 6))
@@ -130,6 +133,7 @@ for i in range(10):
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
+plt.savefig('35aetorch')
 plt.show()
 
 plt.plot(epoch_total, loss_total, label='loss')
@@ -137,6 +141,7 @@ plt.title('torch loss')  # 题目
 plt.xlabel('Epoch')  # 横坐标
 plt.ylabel('Loss')  # 纵坐标
 plt.legend(['train'], loc='upper left')  # 图线示例
+plt.savefig('35aetorchloss')
 plt.show()  # 画图
 
 # ------------------------------------5可视化------------------------------------------
