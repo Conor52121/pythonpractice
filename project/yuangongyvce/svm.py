@@ -1,22 +1,13 @@
 # -*- coding: utf-8 -*-
 # @Time: 2020/6/20 16:03
 # @Author: wangshengkang
-# -*- coding: utf-8 -*-
-# @Time: 2020/6/19 10:20
-# @Author: wangshengkang
-import keras
+
+
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-from keras import Input, Model
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation
-import matplotlib.pyplot as plt
-from keras.utils import plot_model
-from keras.models import load_model
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 data = pd.read_csv('train.csv')
 print(data.head(5))
@@ -32,10 +23,10 @@ train_x = pd.get_dummies(data,columns=['BusinessTravel','Department','EducationF
 print(train_x.head(5))
 
 print(train_x.shape[1])
-
+train_x,val_x,train_y,val_y=train_test_split(train_x,train_y,test_size=0.2,random_state=1)
 svc=SVC()
 svc.fit(train_x,train_y)
-
+print('SVM Accuracy:{:.5f}'.format(accuracy_score(val_y,svc.predict(val_x))))
 
 test_data=pd.read_csv('test_noLabel.csv')
 test_data=pd.DataFrame(test_data)
@@ -53,4 +44,4 @@ test_y=np.round(test_y).astype(np.int)
 print(test_y.head(5))
 test_y.insert(0,'ID',test_id)
 
-test_y.to_csv('svcpred.csv',index=None, header=['ID','Label'])
+test_y.to_csv('svmpred.csv',index=None, header=['ID','Label'])

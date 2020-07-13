@@ -4,7 +4,8 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/classhomework/housepredict/DC" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/project/xinguan" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/project/maze" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/mazeall/maze" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/ReidBaseline" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

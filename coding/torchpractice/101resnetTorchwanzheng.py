@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time: 2020/6/21 16:05
 # @Author: wangshengkang
+#resnet50的应用，有数据集
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo  #导入model_zoo，作用是根据下面的model_urls里的地址加载网络预训练权重。
 import gzip
