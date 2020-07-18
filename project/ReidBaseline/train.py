@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import time
 import os
-from model import ft_net, ft_net_dense, ft_net_NAS, PCB
-#from random_erasing import RandomErasing
+from model import ft_net
+# from random_erasing import RandomErasing
 import yaml
 import math
 from shutil import copyfile
@@ -33,9 +33,10 @@ version = torch.__version__
 parser = argparse.ArgumentParser(description='Training')
 # 调用add_argument()方法添加参数
 parser.add_argument('--gpu_ids', default='0', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
-#名字可以随便起，用来保存模型
+# 名字可以随便起，用来保存模型
 parser.add_argument('--name', default='ft_ResNet50', type=str, help='output model name')
-parser.add_argument('--data_dir', default='/data0/wangshengkang/datasets/Market-1501-v15.09.15/pytorch', type=str, help='training dir path')
+parser.add_argument('--data_dir', default='/data0/wangshengkang/datasets/Market-1501-v15.09.15/pytorch', type=str,
+                    help='training dir path')
 parser.add_argument('--train_all', action='store_true', help='use all training data')
 parser.add_argument('--batchsize', default=32, type=int, help='batchsize')
 parser.add_argument('--stride', default=2, type=int, help='stride')
@@ -59,7 +60,7 @@ for str_id in str_ids:
 
 # set gpu ids
 if len(gpu_ids) > 0:
-    torch.cuda.set_device(gpu_ids[0])  # 设置使用哪块gpu
+    torch.cuda.set_device(gpu_ids[0])  # 设置使用哪块gpu，只用第一块就够了
     '''
     总的来说，大部分情况下，设置这个 flag 可以让内置的 cuDNN 的 auto-tuner 自动寻找最适合当前配置的高效算法，来达到优化运行效率的问题。
     一般来讲，应该遵循以下准则：
@@ -120,7 +121,6 @@ since = time.time()  # 获取当前时间
 inputs, classes = next(iter(dataloaders['train']))  # 迭代读取
 print(time.time() - since)  # 打印出代码运行时间
 
-
 y_loss = {'train': [], 'val': []}  # loss history 创建损失字典
 y_err = {}
 y_err['train'] = []
@@ -134,7 +134,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     # best_model_wts = model.state_dict()
     # best_acc = 0.0
     warm_up = 0.1  # We start from the 0.1*lrRate
-    #round返回浮点数x的四舍五入值。
+    # round返回浮点数x的四舍五入值。
     warm_iteration = round(dataset_sizes['train'] / opt.batchsize) * opt.warm_epoch  # first 5 epoch
 
     for epoch in range(num_epochs):  # 开始训练
@@ -187,10 +187,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     optimizer.step()  # optimizer
 
                 # statistics
-                #if int(version[0]) > 0 or int(version[2]) > 3:  # for the new version like 0.4.0, 0.5.0 and 1.0.0
+                # if int(version[0]) > 0 or int(version[2]) > 3:  # for the new version like 0.4.0, 0.5.0 and 1.0.0
                 running_loss += loss.item() * now_batch_size
-                #else:  # for the old version like 0.3.0 and 0.3.1
-                    #running_loss += loss.data[0] * now_batch_size
+                # else:  # for the old version like 0.3.0 and 0.3.1
+                # running_loss += loss.data[0] * now_batch_size
                 running_corrects += float(torch.sum(preds == labels.data))
 
             epoch_loss = running_loss / dataset_sizes[phase]
@@ -204,23 +204,22 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             y_err[phase].append(1.0 - epoch_acc)
             # deep copy the model
             if phase == 'val':
-                last_model_wts = model.state_dict()#model.state_dict()其实返回的是一个OrderDict，存储了网络结构的名字和对应的参数
+                last_model_wts = model.state_dict()  # model.state_dict()其实返回的是一个OrderDict，存储了网络结构的名字和对应的参数
                 if epoch % 10 == 9:  # 每十次epoch保存一次网络
                     save_network(model, epoch)
 
-
-        time_elapsed = time.time() - since#所用的时间
+        time_elapsed = time.time() - since  # 所用的时间
         print('Training complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60))
-        print()#打印空行
+        print()  # 打印空行
 
-    time_elapsed = time.time() - since#总消耗时间
+    time_elapsed = time.time() - since  # 总消耗时间
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     # print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
-    model.load_state_dict(last_model_wts)#加载模型参数
+    model.load_state_dict(last_model_wts)  # 加载模型参数
     save_network(model, 'last')
     return model
 
@@ -228,9 +227,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 # Save model
 # ---------------------------
 def save_network(network, epoch_label):
-    save_filename = 'net_%s.pth' % epoch_label#模型名字
-    save_path = os.path.join('./model', name, save_filename)#模型路径
-    torch.save(network.cpu().state_dict(), save_path)#保存模型
+    save_filename = 'net_%s.pth' % epoch_label  # 模型名字
+    save_path = os.path.join('./model', name, save_filename)  # 模型路径
+    torch.save(network.cpu().state_dict(), save_path)  # 保存模型
     if torch.cuda.is_available():
         network.cuda(gpu_ids[0])
 
@@ -242,10 +241,10 @@ def save_network(network, epoch_label):
 # Load a pretrainied model and reset final fully connected layer.
 #
 
-#调用模型
+# 调用模型
 model = ft_net(len(class_names), opt.droprate, opt.stride)
 
-opt.nclasses = len(class_names)#类的数量，也就是行人ID数量
+opt.nclasses = len(class_names)  # 类的数量，也就是行人ID数量
 
 print(model)  # 打印model网络结构
 
@@ -273,10 +272,10 @@ if not os.path.isdir(dir_name):
 copyfile('./train.py', dir_name + '/train.py')
 copyfile('./model.py', dir_name + '/model.py')
 
-#'w'表示打开一个文件只用于写入。如果该文件已存在则将其覆盖。如果该文件不存在，创建新文件。
+# 'w'表示打开一个文件只用于写入。如果该文件已存在则将其覆盖。如果该文件不存在，创建新文件。
 # save opts 将本次的参数保存下来
 with open('%s/opts.yaml' % dir_name, 'w') as fp:
-    #dump()将一个python对象生成为yaml文档，
+    # dump()将一个python对象生成为yaml文档，
     yaml.dump(vars(opt), fp, default_flow_style=False)
 
 # model to gpu

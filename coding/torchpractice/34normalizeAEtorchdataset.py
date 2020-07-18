@@ -42,7 +42,6 @@ X_test = torch.from_numpy(X_test)
 set = TensorDataset(X_train, X_train)  # 将数据集包装为TensorDataset
 loader = DataLoader(dataset=set, batch_size=128, shuffle=False)  # 使用dataloader类
 
-
 # ------------------------------------2数据处理------------------------------------------
 # ------------------------------------3建立模型------------------------------------------
 

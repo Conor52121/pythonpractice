@@ -18,7 +18,7 @@ Market1501数据集内容:
     
 经过prepare.py处理后，在pytorch文件夹中生成的新的数据集形式：
     gallery             gallery也就是test
-    multi-query         gt_box里的数据
+    multi-query         gt_bbox里的数据
     query               query
     train               train
     train_all           train+val
