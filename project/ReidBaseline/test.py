@@ -24,9 +24,9 @@ from model import ft_net
 # --------
 
 parser = argparse.ArgumentParser(description='Training')
-parser.add_argument('--gpu_ids', default='0', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
+parser.add_argument('--gpu_ids', default='5', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
 parser.add_argument('--which_epoch', default='last', type=str, help='0,1,2,3...or last')
-parser.add_argument('--test_dir', default='/data0/wangshengkang/datasets/Market-1501-v15.09.15/pytorch', type=str,
+parser.add_argument('--test_dir', default='/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15/pytorch', type=str,
                     help='./test_data')
 parser.add_argument('--name', default='ft_ResNet50', type=str, help='save model path')
 parser.add_argument('--batchsize', default=256, type=int, help='batchsize')
@@ -90,6 +90,12 @@ data_transforms = transforms.Compose([
 ])
 
 data_dir = test_dir  # 数据集地址
+if data_dir == 'market':
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15/pytorch'
+elif data_dir == 'duke':
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/DukeMTMC-reID/pytorch'
+elif data_dir == 'msmt':
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/MSMT17/pytorch'
 
 # 数据集弄成dataloader的形式
 image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms) for x in ['gallery', 'query']}
@@ -116,6 +122,7 @@ def load_network(network):
 #
 def fliplr(img):
     '''flip horizontal'''
+    #arange
     inv_idx = torch.arange(img.size(3) - 1, -1, -1).long()  # N x C x H x W
     img_flip = img.index_select(3, inv_idx)
     return img_flip
@@ -123,14 +130,14 @@ def fliplr(img):
 
 # 提取特征
 def extract_feature(model, dataloaders):
-    features = torch.FloatTensor()
-    count = 0
+    features = torch.FloatTensor()#创建一个tensor
+    count = 0#目前所有batch的图片数量初始化
     for data in dataloaders:
         img, label = data  # 图片和标签
         n, c, h, w = img.size()  # 图片的N,C,H,W
         count += n  # 将每个batch的图片数量加起来
         print(count)  # 打印目前所有batch的图片数量
-        ff = torch.FloatTensor(n, 512).zero_().cuda()
+        ff = torch.FloatTensor(n, 512).zero_().cuda()#创建一个大小为n*512的0矩阵
 
         for i in range(2):
             if (i == 1):
@@ -214,4 +221,4 @@ result = './model/%s/result.txt' % opt.name
 # Linux tee命令用于读取标准输入的数据，并将其内容输出成文件。
 # tee指令会从标准输入设备读取数据，将其内容输出到标准输出设备，同时保存成文件。
 # -a或--append 　附加到既有文件的后面，而非覆盖它。
-os.system('python evaluate_gpu.py | tee -a %s' % result)
+os.system('python evaluate_gpu.py | tee -a %s' % result)#将运行结果存放到result里面

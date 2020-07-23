@@ -32,17 +32,18 @@ version = torch.__version__
 # 创建 ArgumentParser() 对象
 parser = argparse.ArgumentParser(description='Training')
 # 调用add_argument()方法添加参数
-parser.add_argument('--gpu_ids', default='0', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
+parser.add_argument('--gpu_ids', default='5', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
 # 名字可以随便起，用来保存模型
 parser.add_argument('--name', default='ft_ResNet50', type=str, help='output model name')
-parser.add_argument('--data_dir', default='/data0/wangshengkang/datasets/Market-1501-v15.09.15/pytorch', type=str,
+parser.add_argument('--data_dir',
+                    default='/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15/pytorch',
+                    type=str,
                     help='training dir path')
+# action一种开关，写上参数为正，不写为负
 parser.add_argument('--train_all', action='store_true', help='use all training data')
-parser.add_argument('--batchsize', default=32, type=int, help='batchsize')
+parser.add_argument('--batchsize', default=128, type=int, help='batchsize')
 parser.add_argument('--stride', default=2, type=int, help='stride')
 parser.add_argument('--warm_epoch', default=0, type=int, help='the first K epoch that needs warm up')
-parser.add_argument('--use_dense', action='store_true', help='use densenet121')
-parser.add_argument('--use_NAS', action='store_true', help='use NAS')
 parser.add_argument('--lr', default=0.05, type=float, help='learning rate')
 parser.add_argument('--droprate', default=0.5, type=float, help='drop rate')
 
@@ -50,6 +51,14 @@ parser.add_argument('--droprate', default=0.5, type=float, help='drop rate')
 opt = parser.parse_args()
 
 data_dir = opt.data_dir  # 数据存放地址
+
+if data_dir == 'market':
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15/pytorch'
+elif data_dir == 'duke':
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/DukeMTMC-reID/pytorch'
+elif data_dir == 'msmt':
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/MSMT17/pytorch'
+
 name = opt.name  # 模型名字，默认为ft_ResNet50
 str_ids = opt.gpu_ids.split(',')  # 将字符串按逗号分开
 gpu_ids = []  # 建立gpu list
@@ -90,6 +99,7 @@ transform_val_list = [
 ]
 
 print(transform_train_list)
+# 用字典的形式创建transform
 data_transforms = {
     'train': transforms.Compose(transform_train_list),  # 将transforms列表里面的transform操作进行遍历
     'val': transforms.Compose(transform_val_list),
@@ -99,18 +109,20 @@ train_all = ''
 if opt.train_all:  # 如果使用全部的训练数据train_all
     train_all = '_all'
 
-image_datasets = {}
+image_datasets = {}  # 创建数据集的字典
 # 用ImageFolder包装数据集
+# 训练集如果选了train_all，那么就是train+val，没选就是train
+# 验证集为val
 image_datasets['train'] = datasets.ImageFolder(os.path.join(data_dir, 'train' + train_all),
                                                data_transforms['train'])
 image_datasets['val'] = datasets.ImageFolder(os.path.join(data_dir, 'val'),
                                              data_transforms['val'])
 
-# dataloader读取train，validation数据集
+# dataloader读取train，validation数据集，dataloader为字典的形式
 dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batchsize,
                                               shuffle=True, num_workers=8, pin_memory=True)  # 8 workers may work faster
                for x in ['train', 'val']}
-# 数据长度
+# 数据长度，为字典的形式
 dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 # 子文件夹名，也就是label
 class_names = image_datasets['train'].classes
@@ -152,7 +164,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             running_loss = 0.0
             running_corrects = 0.0
             # Iterate over data.
-            for data in dataloaders[phase]:
+            for data in dataloaders[phase]:  # 从dataloader字典里面选择训练集或者验证集
                 # get the inputs
                 inputs, labels = data  # 获得图片和标签
                 now_batch_size, c, h, w = inputs.shape  # 获取N,C,H,W

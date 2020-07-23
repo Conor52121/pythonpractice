@@ -9,7 +9,7 @@ import os
 # Evaluate
 def evaluate(qf, ql, qc, gf, gl, gc):
     query = qf.view(-1, 1)
-    print('query.shape', query.shape)
+    #print('query.shape', query.shape)#(512,1)
     # torch.mm(a, b)是矩阵a和b矩阵相乘，比如a的维度是(1, 2)，b的维度是(2, 3)，返回的就是(1, 3)的矩阵
     score = torch.mm(gf, query)
     # 先看torch.squeeze() 这个函数主要对数据的维度进行压缩，去掉维数为1的的维度，比如是一行或者一列这种，一个一行三列（1,3）的数去掉第一个维数为一的维度之后就变成（3）行。squeeze(a)就是将a中所有为1的维度删掉。不为1的维度没有影响。a.squeeze(N) 就是去掉a中指定的维数为一的维度。还有一种形式就是b=torch.squeeze(a，N) a中去掉指定的定的维数为一的维度。

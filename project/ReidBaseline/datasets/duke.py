@@ -1,29 +1,69 @@
 # -*- coding: utf-8 -*-
-# @Time: 2020/7/2 15:25
+# @Time: 2020/7/23 8:07
 # @Author: wangshengkang
 # @Software: PyCharm
+# 此文件仿照prepare.py对duke数据集进行读取
 import os
 from shutil import copyfile
+import argparse
+'''
+行人重识别(ReID) ——数据集描述 DukeMTMC-reID
+
+数据集简介
+　　DukeMTMC 数据集是一个大规模标记的多目标多摄像机行人跟踪数据集。它提供了一个由 8 个
+同步摄像机记录的新型大型高清视频数据集，具有 7,000 多个单摄像机轨迹和超过 2,700 多个
+独立人物，DukeMTMC-reID 是 DukeMTMC 数据集的行人重识别子集，并且提供了人工标注的
+bounding box。
+
+目录结构
+DukeMTMC-reID
+　　├── bounding_box_test
+　　　　　　　├── 0002_c1_f0044158.jpg
+　　　　　　　├── 3761_c6_f0183709.jpg
+　　　　　　　├── 7139_c2_f0160815.jpg
+　　├── bounding_box_train
+　　　　　　　├── 0001_c2_f0046182.jpg
+　　　　　　　├── 0008_c3_f0026318.jpg
+　　　　　　　├── 7140_c4_f0175988.jpg
+　　├── query
+　　　　　　　├── 0005_c2_f0046985.jpg
+　　　　　　　├── 0023_c4_f0031504.jpg
+　　　　　　　├── 7139_c2_f0160575.jpg
+　　└── CITATION_DukeMTMC.txt
+　　└── CITATION_DukeMTMC-reID.txt
+　　└── LICENSE_DukeMTMC.txt
+　　└── LICENSE_DukeMTMC-reID.txt
+　　└── README.md
+
+目录介绍
+从视频中每 120 帧采样一张图像，得到了 36,411 张图像。一共有 1,404 个人出现在大于两个摄像头下，有 408 个人 (distractor ID) 只出现在一个摄像头下。
+1） “bounding_box_test”——用于测试集的 702 人，包含 17,661 张图像（随机采样，702 ID + 408 distractor ID）
+2） “bounding_box_train”——用于训练集的 702 人，包含 16,522 张图像（随机采样）
+3） “query”——为测试集中的 702 人在每个摄像头中随机选择一张图像作为 query，共有 2,228 张图像
+
+命名规则
+以 0001_c2_f0046182.jpg 为例
+1） 0001 表示每个人的标签编号；
+2） c2 表示来自第二个摄像头(camera2)，共有 8 个摄像头；
+3） f0046182 表示来自第二个摄像头的第 46182 帧。
+'''
+
+
+# 创建 ArgumentParser() 对象
+parser = argparse.ArgumentParser(description='Training')
+# 调用add_argument()方法添加参数
+parser.add_argument('--download_path',
+                    default='/data2/wangshengkang/ingenious/a/skillful/datasets/DukeMTMC-reID',
+                    type=str,
+                    help='dataset path')
+
+# 使用parse_args()解析添加的参数
+opt = parser.parse_args()
 
 # 数据集路径
-download_path = 'D:\datasets\zhengzhedong\Market-1501-v15.09.15\Market-1501-v15.09.15'
-'''
-Market1501数据集内容:
-    bounding_box_test  19732张测试集图片，750人。前缀为 0000 表示在提取这 750 人的过程中DPM检测错的图（图片可能为局部图片）（可能与query是同一个人），-1 表示检测出来其他人的图（不在这 750 人中）
-    bounding_box_train  12936张训练集图片，751人。
-    gt_bbox  手工标注的bounding box，用于判断DPM检测的bounding box是不是一个好的box。25259张图片，图片与train和test中的1501个行人有关。用来区分good，junk，distractors
-    gt_query  matlab格式，用于判断一个query的哪些图片是好的匹配（同一个人不同摄像头的图像）和不好的匹配（同一个人同一个摄像头的图像或非同一个人的图像）。与3368个query有关，里面有good，junk，在performance evaluation的时候用
-    query  3368张query图片，750人，对应的gallery为bounding_box_test
-    readme.txt
-    
-经过prepare.py处理后，在pytorch文件夹中生成的新的数据集形式：
-    gallery             gallery也就是test
-    multi-query         gt_bbox里的数据
-    query               query
-    train               train
-    train_all           train+val
-    val                 val
-'''
+download_path = opt.download_path
+#download_path = 'D:\datasets\DukeMTMC-reID\DukeMTMC-reID'
+
 # 如果数据集地址不对，提示
 if not os.path.isdir(download_path):
     print('please change the download_path')
@@ -51,32 +91,14 @@ for root, dirs, files in os.walk(query_path, topdown=True):
     for name in files:
         if not name[-3:] == 'jpg':  # 如果后缀名不是jpg，跳出本次循环，不执行余下代码，继续下一次循环
             continue
-        ID = name.split('_')  # 图片id，分成三块
+        ID = name.split('_')  # 图片id，分成四块
         src_path = query_path + '/' + name  # 图片地址
         dst_path = query_save_path + '/' + ID[0]  # 用标签作为地址
         if not os.path.isdir(dst_path):  # 每个label文件夹的第一张图片时会创建新的文件夹，后面的就不用了
             os.mkdir(dst_path)
         copyfile(src_path, dst_path + '/' + name)  # 将原始数据集复制到以label命名的新的文件夹
 
-# ------------------------------------------------------------------------------------
-# multi-query
-query_path = download_path + '/gt_bbox'
-# for dukemtmc-reid, we do not need multi-query
-if os.path.isdir(query_path):
-    query_save_path = download_path + '/pytorch/multi-query'
-    if not os.path.isdir(query_save_path):
-        os.mkdir(query_save_path)
 
-    for root, dirs, files in os.walk(query_path, topdown=True):
-        for name in files:
-            if not name[-3:] == 'jpg':
-                continue
-            ID = name.split('_')
-            src_path = query_path + '/' + name
-            dst_path = query_save_path + '/' + ID[0]
-            if not os.path.isdir(dst_path):
-                os.mkdir(dst_path)
-            copyfile(src_path, dst_path + '/' + name)
 
 # -----------------------------------------------------------------------------------
 # gallery
