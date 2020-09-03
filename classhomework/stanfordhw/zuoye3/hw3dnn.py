@@ -26,11 +26,11 @@ def readfile(path, label):
         return x
 
 print("Reading data")
-train_x, train_y = readfile("C:/datasets/food-11/food-11/training", True)
+train_x, train_y = readfile("C:/reiddatasets/food-11/food-11/training", True)
 print("Size of training data = {}".format(len(train_x)))
-val_x, val_y = readfile("C:/datasets/food-11/food-11/validation", True)
+val_x, val_y = readfile("C:/reiddatasets/food-11/food-11/validation", True)
 print("Size of validation data = {}".format(len(val_x)))
-test_x = readfile("C:/datasets/food-11/food-11/testing", False)
+test_x = readfile("C:/reiddatasets/food-11/food-11/testing", False)
 print("Size of Testing data = {}".format(len(test_x)))
 
 # 对train和validation进行数据增强(data augmentation),可参考链接https://blog.csdn.net/lanmengyiyu/article/details/79658545

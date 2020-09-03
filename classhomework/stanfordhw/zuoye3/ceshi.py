@@ -16,7 +16,7 @@ def readfile(path, label):
     else:
         return x
 
-train_x, train_y = readfile("C:/datasets/ceshi", True)
+train_x, train_y = readfile("C:/reiddatasets/ceshi", True)
 print("Size of training data = {}".format(len(train_x)))
 print(1)
 print(train_x)

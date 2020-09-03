@@ -36,7 +36,7 @@ parser.add_argument('--gpu_ids', default='5', type=str, help='gpu_ids: e.g. 0  0
 # 名字可以随便起，用来保存模型
 parser.add_argument('--name', default='ft_ResNet50', type=str, help='output model name')
 parser.add_argument('--data_dir',
-                    default='/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15/pytorch',
+                    default='/data2/wangshengkang/ingenious/a/skillful/reiddatasets/Market-1501-v15.09.15/pytorch',
                     type=str,
                     help='training dir path')
 # action一种开关，写上参数为正，不写为负
@@ -53,11 +53,11 @@ opt = parser.parse_args()
 data_dir = opt.data_dir  # 数据存放地址
 
 if data_dir == 'market':
-    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15/pytorch'
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/reiddatasets/Market-1501-v15.09.15/pytorch'
 elif data_dir == 'duke':
-    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/DukeMTMC-reID/pytorch'
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/reiddatasets/DukeMTMC-reID/pytorch'
 elif data_dir == 'msmt':
-    data_dir = '/data2/wangshengkang/ingenious/a/skillful/datasets/MSMT17/pytorch'
+    data_dir = '/data2/wangshengkang/ingenious/a/skillful/reiddatasets/MSMT17/pytorch'
 
 name = opt.name  # 模型名字，默认为ft_ResNet50
 str_ids = opt.gpu_ids.split(',')  # 将字符串按逗号分开
@@ -181,6 +181,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 optimizer.zero_grad()
                 # forward
                 if phase == 'val':
+                    # with torch.no_grad： disables tracking of gradients in autograd.
+                    # model.eval()： changes the forward() behaviour of the module it
+                    # is called upon. eg, it disables dropout and has batch norm use
+                    # the entire population statistics
                     with torch.no_grad():
                         outputs = model(inputs)
                 else:

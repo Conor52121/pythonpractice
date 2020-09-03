@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/project/xinguan" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/project/mazeall/maze" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/project/ReidBaseline" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/qita" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

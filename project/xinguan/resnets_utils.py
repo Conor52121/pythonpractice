@@ -118,7 +118,7 @@ def load_dataset():
         np.random.shuffle(yt)
     # print(Val_images)
     # print(yt)
-    #train_dataset = h5py.File('datasets/train_signs.h5', "r")
+    #train_dataset = h5py.File('reiddatasets/train_signs.h5', "r")
     train_set_x_orig = Train_images
     train_set_y_orig = y
     #train_set_x_orig = np.array(Train_images[:])  # your train set features
@@ -128,7 +128,7 @@ def load_dataset():
     #print(train_set_y_orig)
     #print(train_set_y_orig.__len__())
 
-    #test_dataset = h5py.File('datasets/test_signs.h5', "r")
+    #test_dataset = h5py.File('reiddatasets/test_signs.h5', "r")
     test_set_x_orig = Val_images
     test_set_y_orig = yt
     #test_set_x_orig = np.array(Val_images[:])  # your test set features

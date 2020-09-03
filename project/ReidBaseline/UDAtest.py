@@ -30,6 +30,7 @@ parser.add_argument('--test_dir',
                     default='/data2/wangshengkang/ingenious/a/skillful/reiddatasets/Market-1501-v15.09.15/pytorch',
                     type=str,
                     help='./test_data')
+parser.add_argument('--model_path', default='/data2/wangshengkang/ingenious/a/skillful/ReidBaseline/model/duke/net_last.pth', type=str, help='domain adaption')
 parser.add_argument('--name', default='ft_ResNet50', type=str, help='save model path')
 parser.add_argument('--batchsize', default=256, type=int, help='batchsize')
 parser.add_argument('--multi', action='store_true', help='use multiple query')
@@ -111,7 +112,8 @@ use_gpu = torch.cuda.is_available()  # 是否有gpu
 # Load model
 # ---------------------------
 def load_network(network):
-    save_path = os.path.join('./model', name, 'net_%s.pth' % opt.which_epoch)  # 保存模型的路径
+    #save_path = os.path.join('./model', name, 'net_%s.pth' % opt.which_epoch)  # 保存模型的路径
+    save_path=opt.model_path
     network.load_state_dict(torch.load(save_path))  # 保存模型
     return network
 
@@ -189,7 +191,7 @@ def extract_feature(model, dataloaders):
             out（Tensor, optional）:tensor的输出。如果dim=None或out=None,则忽略该参数。
             dtype（torch.dtype，optional）：指定返回tensor的期望数据类型。如果指定了该参数，在执行该操作时输入tensor将被转换成 :attr:’dtype’
         '''
-        fnorm = torch.norm(ff, p=2, dim=1, keepdim=True)# L2-norm p取2计算的是2-范数，也就是距离
+        fnorm = torch.norm(ff, p=2, dim=1, keepdim=True)#p取2计算的是2-范数，也就是距离
         '''
         expand_as(other) → Tensor
             Expand this tensor to the same size as other. self.expand_as(other) is equivalent to self.expand(other.size()).
@@ -197,7 +199,6 @@ def extract_feature(model, dataloaders):
             Parameters
                 other (torch.Tensor) – The result tensor has the same size as other.
         torch.div()
-            out=input/other
             torch.div(input, other, out=None) → Tensor
             Divides each element of the input input with the scalar other and returns a new resulting tensor.
         '''

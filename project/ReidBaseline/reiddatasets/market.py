@@ -10,7 +10,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Training')
 # 调用add_argument()方法添加参数
 parser.add_argument('--download_path',
-                    default='/data2/wangshengkang/ingenious/a/skillful/datasets/Market-1501-v15.09.15',
+                    default='/data2/wangshengkang/ingenious/a/skillful/reiddatasets/Market-1501-v15.09.15',
                     type=str,
                     help='dataset path')
 
@@ -19,7 +19,7 @@ opt = parser.parse_args()
 
 # 数据集路径
 download_path = opt.download_path
-# download_path = 'D:\datasets\zhengzhedong\Market-1501-v15.09.15\Market-1501-v15.09.15'
+# download_path = 'D:\reiddatasets\zhengzhedong\Market-1501-v15.09.15\Market-1501-v15.09.15'
 
 '''
 Market1501数据集内容:
