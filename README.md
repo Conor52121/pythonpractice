@@ -9,4 +9,4 @@ coding/keraspractice：平时练习keras框架搭建的神经网络，包括各�
 
 coding/torchpractice：平时练习pytorch框架搭建的神经网络，包括各种预测分类任务，网络有cnn，gcn，resnet，孪生网络，densenet，unet等各种网络。
 
-project：一些小项目，gui，迷宫，天气爬虫，员工离职预测。
+project：一些小项目，gui，迷宫，天气爬虫，员工预测。
